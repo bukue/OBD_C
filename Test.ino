@@ -1,15 +1,16 @@
-/*************************************************************************
-* Sample sketch based on OBD-II library for Arduino
-* Distributed under GPL v2.0
-* Visit http://freematics.com for more information
-* (C)2012-2014 Stanley Huang <stanleyhuangyc@gmail.com>
-*************************************************************************/
-
 #include <Arduino.h>
 #include <Wire.h>
 #include <OBD.h>
 
 COBD obd;
+byte byteRead;
+int pid;
+
+int value;
+
+String content = "";
+char character;
+char *command;
 
 void setup()
 {
@@ -25,14 +26,29 @@ void setup()
 
 void loop()
 {
-	int value;
-	if (obd.read(PID_RPM, value)) {
-		// RPM is successfully read and its value stored in variable 'value'
-		// light on LED when RPM exceeds 3000
-		digitalWrite(13, value > 1000 ? HIGH : LOW);
-	}
+	if (Serial.available()){
+		character = Serial.read();
+		
+		if (character == '~'){
+			command = (char*)content.c_str();
 
-	char* vin = obd.readVin();
-	Serial.println(vin);
-	Serial.flush();
+			pid = (int)strtol(command, NULL, 10);
+			content = "";
+
+			if(pid == 0){
+				Serial.println("READY");
+			// if pid is 0x666 then we are asking for the VIN
+			}else if (pid == 1638){
+				char* vin = obd.readVin();
+				Serial.println(vin);
+			}else if(obd.read(pid, value)) {
+				Serial.println(value);
+			}
+		}
+		else{
+			content.concat(character);
+		}
+	}
+ 
+	 Serial.flush();
 }
