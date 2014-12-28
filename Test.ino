@@ -29,7 +29,7 @@ void loop()
 	if (Serial.available()){
 		character = Serial.read();
 		
-		if (character == '~'){
+		if (character == '\r'){
 			command = (char*)content.c_str();
 
 			pid = (int)strtol(command, NULL, 10);
